@@ -1,0 +1,2 @@
+# UnityCommonSolution-SimpleDataPersistence
+ 在Unity中通过反射的方法对场景中的脚本进行数据持久化，保存和加载脚本中的可序列化成员。
