@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Pixelsmao.UnityCommonSolution.SimpleDataPersistence
 {
@@ -27,6 +28,11 @@ namespace Pixelsmao.UnityCommonSolution.SimpleDataPersistence
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void RuntimeInitializeOnLoadMethod()
         {
+            foreach (var root in GetDontDestroyOnLoadGameObjects())
+            {
+                TraverseHierarchy(root.transform);
+            }
+
             var rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
             foreach (var root in rootObjects)
             {
@@ -80,6 +86,34 @@ namespace Pixelsmao.UnityCommonSolution.SimpleDataPersistence
                     }
                 }
             }
+        }
+
+        private static IEnumerable<GameObject> GetDontDestroyOnLoadGameObjects()
+        {
+            var allGameObjects = new List<GameObject>();
+            allGameObjects.AddRange(Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None));
+            //移除所有场景包含的对象
+            for (var i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                var gameObjects = scene.GetRootGameObjects();
+                foreach (var obj in gameObjects)
+                {
+                    allGameObjects.Remove(obj);
+                }
+            }
+
+            //移除父级不为null的对象
+            var k = allGameObjects.Count;
+            while (--k >= 0)
+            {
+                if (allGameObjects[k].transform.parent != null)
+                {
+                    allGameObjects.RemoveAt(k);
+                }
+            }
+
+            return allGameObjects.ToArray();
         }
     }
 }
